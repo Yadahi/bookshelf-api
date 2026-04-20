@@ -12,6 +12,7 @@ const router = express.Router();
 router.post("/", (req, res) => {
   const { title, author, genre, year } = req.body; // Destructure fields from request body
 
+  // Validation
   if (!title || !title.trim()) {
     res.status(400).json({ error: "Title is required" });
     return;
@@ -29,6 +30,7 @@ router.post("/", (req, res) => {
     res.status(400).json({ error: "Year must be a number between 0 and 3000" });
     return;
   }
+
   // db.prepare() = get the SQL ready with ? placeholders (prevents SQL injection!)
   // NEVER put values directly in the SQL string
   const stmt = db.prepare(
@@ -75,6 +77,26 @@ router.get("/:id", (req, res) => {
 // ID comes from URL (req.params), new data comes from body (req.body)
 router.put("/:id", (req, res) => {
   const { title, author, genre, year } = req.body;
+
+  // Validation
+  if (!title || !title.trim()) {
+    res.status(400).json({ error: "Title is required" });
+    return;
+  }
+
+  if (!author || !author.trim()) {
+    res.status(400).json({ error: "Author is required" });
+    return;
+  }
+
+  if (
+    year !== undefined &&
+    (typeof year !== "number" || year < 0 || year > 3000)
+  ) {
+    res.status(400).json({ error: "Year must be a number between 0 and 3000" });
+    return;
+  }
+
   const stmt = db.prepare(
     "UPDATE books SET title=?, author=?, genre=?, year=? WHERE id=?",
   );
@@ -85,6 +107,7 @@ router.put("/:id", (req, res) => {
     res.status(404).json({ error: "Book not found" });
     return;
   }
+
   // Send back the updated book (NOT result - that's just metadata like { changes: 1 })
   // Number() because req.params.id is a string from the URL
   res.json({ id: Number(req.params.id), title, author, genre, year });
