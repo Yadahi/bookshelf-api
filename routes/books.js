@@ -11,6 +11,24 @@ const router = express.Router();
 // Client sends JSON like: { "title": "The Hobbit", "author": "Tolkien", ... }
 router.post("/", (req, res) => {
   const { title, author, genre, year } = req.body; // Destructure fields from request body
+
+  if (!title || !title.trim()) {
+    res.status(400).json({ error: "Title is required" });
+    return;
+  }
+
+  if (!author || !author.trim()) {
+    res.status(400).json({ error: "Author is required" });
+    return;
+  }
+
+  if (
+    year !== undefined &&
+    (typeof year !== "number" || year < 0 || year > 3000)
+  ) {
+    res.status(400).json({ error: "Year must be a number between 0 and 3000" });
+    return;
+  }
   // db.prepare() = get the SQL ready with ? placeholders (prevents SQL injection!)
   // NEVER put values directly in the SQL string
   const stmt = db.prepare(

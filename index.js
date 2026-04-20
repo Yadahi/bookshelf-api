@@ -26,6 +26,12 @@ app.get("/", (req, res) => {
 // req.params → from URL path like /books/:id    - automatic, no middleware needed
 // req.query  → from URL after ? like /books?genre=Fantasy - automatic (used later for filtering)
 
+app.use((err, req, res, next) => {
+  // handle the error
+  res.status(500);
+  res.json({ error: "Something went wrong" });
+});
+
 app.listen(port, () => {
   console.log(`Example app listening on port ${port}`);
 });
