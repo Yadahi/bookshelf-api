@@ -62,9 +62,12 @@ router.post("/", (req, res) => {
 
 // === - GET /books ===
 router.get("/", (req, res) => {
-  const { title, author, genre, year, sort, order } = req.query;
+  const { title, author, genre, year, sort, order, page, limit } = req.query;
   const allowedSortFields = ["title", "author", "genre", "year"];
   let sql = "SELECT * FROM books";
+  let countSql = "SELECT COUNT(*) as count FROM books";
+  const pageNum = parseInt(page) || 1;
+  const limitNum = parseInt(limit) || 10;
 
   const conditions = [];
   const values = [];
@@ -92,7 +95,10 @@ router.get("/", (req, res) => {
   // Filtering
   if (conditions.length > 0) {
     sql += " WHERE " + conditions.join(" AND ");
+    countSql += " WHERE " + conditions.join(" AND ");
   }
+
+  const total = db.prepare(countSql).get(...values).count;
 
   // Sorting
   if (sort && allowedSortFields.includes(sort)) {
@@ -102,12 +108,28 @@ router.get("/", (req, res) => {
     }
   }
 
+  // Pagination
+  if (limit && page) {
+    const offset = (pageNum - 1) * limitNum;
+    values.push(limitNum);
+    values.push(offset);
+    sql += " LIMIT ? OFFSET ? ";
+  }
+
   const stmt = db.prepare(sql);
   // .all() = execute SELECT, return ALL rows as an array of objects
-
   const result = stmt.all(...values);
+
+  console.log("totalResult", total);
+
   // 200 is the default status, no need to write .status(200)
-  res.json(result);
+  res.json({
+    data: result,
+    total,
+    page: pageNum,
+    limit: limitNum,
+    totalPages: Math.ceil(total / limitNum),
+  });
 });
 
 // === READ ONE - GET /books/:id ===
