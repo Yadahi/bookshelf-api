@@ -1,6 +1,5 @@
 const express = require("express"); // Import express (CommonJS style - using require because "type": "commonjs" in package.json)
 const app = express(); // Create the app object - the heart of everything. All routes, middleware, config go through this.
-const port = 3000; // Port = a "door" on your computer. Clients knock on this door to talk to your server.
 const bookRoutes = require("./routes/books");
 
 // Middleware: express.json() parses incoming JSON request bodies into req.body
@@ -27,11 +26,11 @@ app.get("/", (req, res) => {
 // req.query  → from URL after ? like /books?genre=Fantasy - automatic (used later for filtering)
 
 app.use((err, req, res, next) => {
+  console.log("index ERROR", err);
   // handle the error
-  res.status(500);
-  res.json({ error: "Something went wrong" });
+  const statusCode = err.statusCode || 500;
+  const message = err.statusCode ? err.message : "Something went wrong";
+  res.status(statusCode).json({ error: message });
 });
 
-app.listen(port, () => {
-  console.log(`Example app listening on port ${port}`);
-});
+module.exports = app;
