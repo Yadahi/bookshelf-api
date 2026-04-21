@@ -62,7 +62,9 @@ router.post("/", (req, res) => {
 
 // === - GET /books ===
 router.get("/", (req, res) => {
-  const { title, author, genre, year } = req.query;
+  const { title, author, genre, year, sort, order } = req.query;
+  const allowedSortFields = ["title", "author", "genre", "year"];
+  let sql = "SELECT * FROM books";
 
   const conditions = [];
   const values = [];
@@ -87,20 +89,22 @@ router.get("/", (req, res) => {
     values.push(year);
   }
 
-  let sql = "SELECT * FROM books";
+  // Filtering
   if (conditions.length > 0) {
-    console.log("test");
-
     sql += " WHERE " + conditions.join(" AND ");
   }
 
-  console.log("conditions", conditions);
-  console.log("values", values);
-  console.log("sql", sql);
+  // Sorting
+  if (sort && allowedSortFields.includes(sort)) {
+    sql += " ORDER BY " + sort;
+    if (order === "desc") {
+      sql += " DESC";
+    }
+  }
 
   const stmt = db.prepare(sql);
   // .all() = execute SELECT, return ALL rows as an array of objects
-  // Empty table returns [], not undefined
+
   const result = stmt.all(...values);
   // 200 is the default status, no need to write .status(200)
   res.json(result);
@@ -116,8 +120,8 @@ router.get("/:id", (req, res) => {
   const result = stmt.get(req.params.id);
   // Always check if the resource exists before sending it
   if (!result) {
-    res.status(404).json({ error: "Book not found" }); // 404 = "Not Found"
-    return; // IMPORTANT: stop here so res.json below doesn't also run
+    res.status(404).json({ error: "Book not found" });
+    return;
   }
   res.json(result);
 });
