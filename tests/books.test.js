@@ -1,5 +1,13 @@
 import request from "supertest";
 import app from "../app.js";
+import db from "../db.js";
+import { beforeAll, expect } from "vitest";
+
+let bookId;
+
+beforeAll(() => {
+  db.prepare("DELETE FROM books").run();
+});
 
 describe("Bookshelf API", () => {
   it("GET / should return welcome message", async () => {
@@ -11,7 +19,6 @@ describe("Bookshelf API", () => {
 });
 
 describe("POST / GET a book", () => {
-  let bookId;
   it("POST a book", async () => {
     const response = await request(app).post("/books/").send({
       title: "Dune",
@@ -21,8 +28,6 @@ describe("POST / GET a book", () => {
     });
 
     bookId = response.body.id;
-    console.log(bookId);
-
     expect(response.status).toBe(201);
   });
 
@@ -37,5 +42,19 @@ describe("POST / GET a book", () => {
       genre: "Sci-Fi",
       year: 1965,
     });
+  });
+});
+
+describe("DELETE a book", () => {
+  it("should delete a book", async () => {
+    const response = await request(app).delete(`/books/${bookId}`);
+
+    expect(response.status).toBe(200);
+  });
+
+  it("should return 404 for non-existent book", async () => {
+    const response = await request(app).delete("/books/-1").expect(404);
+
+    expect(response.body.error).toBe("Book not found");
   });
 });

@@ -26,7 +26,6 @@ app.get("/", (req, res) => {
 // req.query  → from URL after ? like /books?genre=Fantasy - automatic (used later for filtering)
 
 app.use((err, req, res, next) => {
-  console.log("index ERROR", err);
   // handle the error
   const statusCode = err.statusCode || 500;
   const message = err.statusCode ? err.message : "Something went wrong";
