@@ -32,7 +32,7 @@ function validateBook(title, author, year) {
 // Client sends JSON like: { "title": "The Hobbit", "author": "Tolkien", ... }
 router.post("/", (req, res, next) => {
   try {
-    const { title, author, genre, year } = req.body; // Destructure fields from request body
+    const { title, author, genre, year } = req.body;
 
     const error = validateBook(title, author, year);
     if (error) {
