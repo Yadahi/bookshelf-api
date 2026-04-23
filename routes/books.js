@@ -1,6 +1,7 @@
 const express = require("express");
 const db = require("../db");
 const AppError = require("../utils/AppError");
+const { authMiddleware } = require("../middleware/auth");
 
 const router = express.Router();
 
@@ -30,7 +31,7 @@ function validateBook(title, author, year) {
 // === CREATE - POST /books ===
 // Data comes in req.body (parsed by express.json middleware)
 // Client sends JSON like: { "title": "The Hobbit", "author": "Tolkien", ... }
-router.post("/", (req, res, next) => {
+router.post("/", authMiddleware, (req, res, next) => {
   try {
     const { title, author, genre, year } = req.body;
 
@@ -161,7 +162,7 @@ router.get("/:id", (req, res, next) => {
 // PUT = replace entire resource (send ALL fields)
 // PATCH = partial update (send only changed fields) - trickier to implement
 // ID comes from URL (req.params), new data comes from body (req.body)
-router.put("/:id", (req, res, next) => {
+router.put("/:id", authMiddleware, (req, res, next) => {
   try {
     const { title, author, genre, year } = req.body;
 
@@ -205,7 +206,7 @@ router.put("/:id", (req, res, next) => {
 });
 
 // === DELETE ===
-router.delete("/:id", (req, res, next) => {
+router.delete("/:id", authMiddleware, (req, res, next) => {
   try {
     const stmt = db.prepare("DELETE FROM books WHERE id=?");
     const result = stmt.run(req.params.id);
