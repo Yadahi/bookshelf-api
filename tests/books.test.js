@@ -24,12 +24,15 @@ describe("Bookshelf API", () => {
 describe("POST and GET /books", () => {
   // happy path
   it("should create a new book and return 201", async () => {
-    const response = await request(app).post("/books/").send({
-      title: "Dune",
-      author: "Frank Herbert",
-      genre: "Sci-Fi",
-      year: 1965,
-    });
+    const response = await request(app)
+      .post("/books/")
+      .send({
+        title: "Dune",
+        author: "Frank Herbert",
+        genre: "Sci-Fi",
+        year: 1965,
+      })
+      .set("Authorization", "Bearer my-secret-token-123");
 
     bookId = response.body.id;
     expect(response.status).toBe(201);
@@ -37,11 +40,14 @@ describe("POST and GET /books", () => {
 
   // error case
   it("should return 400 when title is missing", async () => {
-    const response = await request(app).post("/books/").send({
-      author: "New Author",
-      genre: "Fantasy",
-      year: 200,
-    });
+    const response = await request(app)
+      .post("/books/")
+      .send({
+        author: "New Author",
+        genre: "Fantasy",
+        year: 200,
+      })
+      .set("Authorization", "Bearer my-secret-token-123");
 
     expect(response.body.error).toBe("Title is required");
   });
@@ -81,12 +87,15 @@ describe("GET /books with filters", () => {
 describe("PUT /books/:id", () => {
   // happy path
   it("should update a book and return updated data", async () => {
-    const response = await request(app).put(`/books/${bookId}`).send({
-      title: "Dune",
-      author: "Frank Herbert",
-      genre: "Sci-Fi",
-      year: 1967,
-    });
+    const response = await request(app)
+      .put(`/books/${bookId}`)
+      .send({
+        title: "Dune",
+        author: "Frank Herbert",
+        genre: "Sci-Fi",
+        year: 1967,
+      })
+      .set("Authorization", "Bearer my-secret-token-123");
 
     expect(response.body).toStrictEqual({
       id: bookId,
@@ -108,6 +117,7 @@ describe("PUT /books/:id", () => {
         genre: "Sci-Fi",
         year: 1967,
       })
+      .set("Authorization", "Bearer my-secret-token-123")
       .expect(404);
 
     expect(response.body.error).toBe("Book not found");
@@ -117,14 +127,19 @@ describe("PUT /books/:id", () => {
 describe("DELETE /books/:id", () => {
   // happy path
   it("should delete a book and return 200", async () => {
-    const response = await request(app).delete(`/books/${bookId}`);
+    const response = await request(app)
+      .delete(`/books/${bookId}`)
+      .set("Authorization", "Bearer my-secret-token-123");
 
     expect(response.status).toBe(200);
   });
 
   // error case
   it("should return 404 when book does not exist", async () => {
-    const response = await request(app).delete("/books/-1").expect(404);
+    const response = await request(app)
+      .delete("/books/-1")
+      .set("Authorization", "Bearer my-secret-token-123")
+      .expect(404);
 
     expect(response.body.error).toBe("Book not found");
   });
