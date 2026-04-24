@@ -3,7 +3,6 @@ require("dotenv").config();
 const AppError = require("../utils/AppError");
 
 const authMiddleware = (req, res, next) => {
-  console.log("req headers authorization", req.headers.authorization);
   const authToken =
     req.headers.authorization && req.headers.authorization.split(" ")?.[1];
 

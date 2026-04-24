@@ -4,12 +4,26 @@ import db from "../db.js";
 import { beforeAll, describe, expect } from "vitest";
 
 let bookId;
+let token;
 
-beforeAll(() => {
+beforeAll(async () => {
   db.prepare("DELETE FROM books").run();
   db.prepare(
     "INSERT INTO books (title, author, genre, year) VALUES (?, ?, ?, ?)",
   ).run("Another Title", "Another Author", "Fantasy", 2000);
+
+  db.prepare("DELETE FROM users").run();
+  await request(app).post("/auth/register").send({
+    username: "test-user-01",
+    password: "test1234",
+  });
+
+  const response = await request(app).post("/auth/login").send({
+    username: "test-user-01",
+    password: "test1234",
+  });
+
+  token = response.body.token;
 });
 
 describe("Bookshelf API", () => {
@@ -32,7 +46,7 @@ describe("POST and GET /books", () => {
         genre: "Sci-Fi",
         year: 1965,
       })
-      .set("Authorization", "Bearer my-secret-token-123");
+      .set("Authorization", `Bearer ${token}`);
 
     bookId = response.body.id;
     expect(response.status).toBe(201);
@@ -49,7 +63,7 @@ describe("POST and GET /books", () => {
       })
       .expect(401);
 
-    expect(response.body.error).toBe("Not authorized");
+    expect(response.body.error).toBe("Token missing");
   });
 
   // error case
@@ -61,7 +75,7 @@ describe("POST and GET /books", () => {
         genre: "Fantasy",
         year: 200,
       })
-      .set("Authorization", "Bearer my-secret-token-123");
+      .set("Authorization", `Bearer ${token}`);
 
     expect(response.body.error).toBe("Title is required");
   });
@@ -109,7 +123,7 @@ describe("PUT /books/:id", () => {
         genre: "Sci-Fi",
         year: 1967,
       })
-      .set("Authorization", "Bearer my-secret-token-123");
+      .set("Authorization", `Bearer ${token}`);
 
     expect(response.body).toStrictEqual({
       id: bookId,
@@ -131,7 +145,7 @@ describe("PUT /books/:id", () => {
         genre: "Sci-Fi",
         year: 1967,
       })
-      .set("Authorization", "Bearer my-secret-token-123")
+      .set("Authorization", `Bearer ${token}`)
       .expect(404);
 
     expect(response.body.error).toBe("Book not found");
@@ -143,7 +157,7 @@ describe("DELETE /books/:id", () => {
   it("should delete a book and return 200", async () => {
     const response = await request(app)
       .delete(`/books/${bookId}`)
-      .set("Authorization", "Bearer my-secret-token-123");
+      .set("Authorization", `Bearer ${token}`);
 
     expect(response.status).toBe(200);
   });
@@ -152,7 +166,7 @@ describe("DELETE /books/:id", () => {
   it("should return 404 when book does not exist", async () => {
     const response = await request(app)
       .delete("/books/-1")
-      .set("Authorization", "Bearer my-secret-token-123")
+      .set("Authorization", `Bearer ${token}`)
       .expect(404);
 
     expect(response.body.error).toBe("Book not found");

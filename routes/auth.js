@@ -28,7 +28,6 @@ router.post("/register", (req, res, next) => {
     }
 
     const hashedPassword = bcrypt.hashSync(password, 10);
-    console.log(hashedPassword);
     const stmt = db
       .prepare("INSERT INTO users (username, password) VALUES (?, ?)")
       .run(username, hashedPassword);
@@ -52,7 +51,6 @@ router.post("/login", (req, res, next) => {
         throw new AppError("Invalid credentials", 401);
       }
 
-      // TODO define secret
       const token = jwt.sign(
         { id: result.id, username: result.username },
         process.env.SECRET_KEY,
