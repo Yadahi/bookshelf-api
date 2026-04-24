@@ -1,10 +1,9 @@
 const express = require("express"); // Import express (CommonJS style - using require because "type": "commonjs" in package.json)
 const app = express(); // Create the app object - the heart of everything. All routes, middleware, config go through this.
 const bookRoutes = require("./routes/books");
+const authRoutes = require("./routes/auth")
 
 // Middleware: express.json() parses incoming JSON request bodies into req.body
-// Without this, req.body is undefined. Express can SEND json (res.json) by default,
-// but needs this middleware to READ incoming json.
 // Middleware goes BEFORE routes that need it.
 app.use(express.json());
 
@@ -12,6 +11,7 @@ app.use(express.json());
 // A route = HTTP method + path + handler function
 // Handler receives: req (what the client sent) and res (how you respond)
 app.use("/books", bookRoutes);
+app.use("/auth", authRoutes);
 
 // GET / - Welcome message
 app.get("/", (req, res) => {

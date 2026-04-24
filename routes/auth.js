@@ -1,6 +1,7 @@
 const express = require("express");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+require("dotenv").config();
 const db = require("../db");
 const AppError = require("../utils/AppError");
 
@@ -26,7 +27,8 @@ router.post("/register", (req, res, next) => {
       throw new AppError(error, 400);
     }
 
-    const hashedPassword = bcrypt.hashSync(password);
+    const hashedPassword = bcrypt.hashSync(password, 10);
+    console.log(hashedPassword);
     const stmt = db
       .prepare("INSERT INTO users (username, password) VALUES (?, ?)")
       .run(username, hashedPassword);
@@ -51,15 +53,15 @@ router.post("/login", (req, res, next) => {
       }
 
       // TODO define secret
-      jwt.sign(
-        { id: result.lastInsertRowid, username: result.username },
-        SECRET_KEY,
+      const token = jwt.sign(
+        { id: result.id, username: result.username },
+        process.env.SECRET_KEY,
         {
           expiresIn: "1h",
         },
       );
 
-      res.status(200).json({ message: "User logged in" });
+      res.status(200).json({ message: "User logged in", token });
     } else {
       throw new AppError("Invalid credentials", 401);
     }
@@ -67,3 +69,5 @@ router.post("/login", (req, res, next) => {
     next(error);
   }
 });
+
+module.exports = router;
