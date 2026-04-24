@@ -38,6 +38,20 @@ describe("POST and GET /books", () => {
     expect(response.status).toBe(201);
   });
 
+  it("should return 401 when token missing", async () => {
+    const response = await request(app)
+      .post("/books/")
+      .send({
+        title: "Test",
+        author: "Frank Herbert",
+        genre: "Sci-Fi",
+        year: 2000,
+      })
+      .expect(401);
+
+    expect(response.body.error).toBe("Not authorized");
+  });
+
   // error case
   it("should return 400 when title is missing", async () => {
     const response = await request(app)
